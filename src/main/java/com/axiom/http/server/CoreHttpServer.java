@@ -1,10 +1,8 @@
 package com.axiom.http.server;
 
-import java.util.Properties;
-
-public interface CoreHttpServer {
-
-	public void init(Properties props);
+public interface CoreHttpServer extends Runnable {
+	
+	public void initServer(int port);
 	
 	public void startServer();
 	
