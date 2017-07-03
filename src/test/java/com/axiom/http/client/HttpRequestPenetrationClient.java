@@ -12,7 +12,7 @@ public class HttpRequestPenetrationClient {
 	private static Logger log = Logger.getLogger(HttpRequestPenetrationClient.class);
 	
 	public static void main(String[] args) throws Exception {
-        for(int i = 0; i < 300; i++) {
+        for(int i = 0; i < 100; i++) {
         	execute();
 	    }
     }
@@ -22,9 +22,9 @@ public class HttpRequestPenetrationClient {
     	DataOutputStream outToServer = null;
     	BufferedReader inFromServer=null;
     	try {
-    		clientSocket = new Socket("localhost", 7070);
+    		clientSocket = new Socket("localhost", 9000);
         	outToServer = new DataOutputStream(clientSocket.getOutputStream());
-	        outToServer.writeBytes("Hello Buddy");
+	        outToServer.writeBytes("Http Request");
 	        inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 	        String sentence = inFromServer.readLine();
 	        log.debug("Message Received " + sentence);
