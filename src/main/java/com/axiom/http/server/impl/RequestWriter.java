@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.log4j.Logger;
 
+import com.axiom.http.constants.AppConstants;
 import com.axiom.http.server.RequestProcessor;
 import com.axiom.http.server.config.ApplicationProperties;
 
@@ -22,7 +23,7 @@ public class RequestWriter extends AbstractRequestProcessor implements RequestPr
 	
 	RequestWriter(Selector sel) {
 		super(sel, -1);
-		response = props.getProperty("http.response");
+		response = props.getProperty(AppConstants.HTTP_RESPONSE);
 	}
 	
 	@Override

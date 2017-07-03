@@ -6,4 +6,6 @@ public class AppConstants {
 	
 	public static final String CHARSET_KEY = "request.charset";
 	
+	public static final String HTTP_RESPONSE = "http.response";
+	
 }
