@@ -6,6 +6,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
@@ -21,13 +23,16 @@ public class RequestReader extends AbstractRequestProcessor implements RequestPr
 	
 	private static final AtomicInteger COUNTER = new AtomicInteger(1);
 	
-	private final String charset;
+	private final Charset charset;
+	
+	private static final int bufferLimit = 256;
 	
 	private ApplicationProperties props = ApplicationProperties.getInstance();
 	
 	RequestReader(Selector sel) {
 		super(sel, SelectionKey.OP_WRITE);
-		charset =  props.getProperty(AppConstants.CHARSET_KEY);
+		String charStr =  props.getProperty(AppConstants.CHARSET_KEY);
+		charset = Charset.forName(charStr);
 	}
 	
 	@Override
@@ -35,8 +40,9 @@ public class RequestReader extends AbstractRequestProcessor implements RequestPr
 		SocketChannel channel = null;
 		try {
 			channel = (SocketChannel) key.channel();
-			String data = readHttpMessage(channel);
-			log.debug("Request " + COUNTER.getAndIncrement() + " Data\n" + data);
+			byte[] data = readHttpMessage(channel);
+			if(data.length == 1) throw new InvalidRequestException();
+			log.debug("Request " + COUNTER.getAndIncrement() + " Data\n"+ new String(data, charset));
 		} catch(IOException | InvalidRequestException e) {
 			closeRequest(key,  channel);
 			if(e.getClass().equals(IOException.class))
@@ -45,13 +51,20 @@ public class RequestReader extends AbstractRequestProcessor implements RequestPr
 		return channel;
 	}
 	
-	private String readHttpMessage(SocketChannel channel) throws IOException {
-		ByteBuffer buffer = ByteBuffer.allocate(128);
-		if(channel.read(buffer) !=-1) {
+	private byte[] readHttpMessage(SocketChannel channel) throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(bufferLimit);
+		int state;
+		byte[] data = {1};
+		int position = 0;
+		while( (state = channel.read(buffer)) > 0 ) {
 			buffer.flip();
-			return new String(buffer.array(), charset);
+			byte[] d = Arrays.copyOf(buffer.array(), state);
+			data = Arrays.copyOf(data, position + state);
+			System.arraycopy(d, 0, data, position, state);
+			position = position + state;
+			buffer.clear();
 		}
-		throw new InvalidRequestException();
+		return data;
 	}
 
 }
